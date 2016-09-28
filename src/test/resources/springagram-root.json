@@ -4,6 +4,10 @@
       "href" : "%s/springagram/items{?projection}",
       "templated" : true
     },
+    "item" : {
+      "href" : "%s/springagram/item/{itemId}{?projection}",
+      "templated" : true
+    },
     "profile" : {
       "href" : "%s/springagram/alps"
     }

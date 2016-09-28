@@ -101,11 +101,13 @@ public class Server implements Closeable {
 		org.springframework.core.io.Resource springagramItems = resourceLoader.getResource("classpath:springagram-items.json");
 		org.springframework.core.io.Resource springagramItem = resourceLoader.getResource("classpath:springagram-item.json");
 		org.springframework.core.io.Resource springagramItemWithoutImage = resourceLoader.getResource("classpath:springagram-item-without-image.json");
+		org.springframework.core.io.Resource springagramItemWithEncodedId = resourceLoader.getResource("classpath:springagram-item-with-encoded-id.json");
 
 		String springagramRootTemplate;
 		String springagramItemsTemplate;
 		String springagramItemTemplate;
 		String springagramItemWithoutImageTemplate;
+		String springagramItemWithEncodedIdTemplate;
 
 		try {
 			springagramRootTemplate = StreamUtils.copyToString(springagramRoot.getInputStream(), Charset.forName("UTF-8"));
@@ -113,14 +115,17 @@ public class Server implements Closeable {
 			springagramItemTemplate = StreamUtils.copyToString(springagramItem.getInputStream(), Charset.forName("UTF-8"));
 			springagramItemWithoutImageTemplate = StreamUtils.copyToString(springagramItemWithoutImage.getInputStream(),
 					Charset.forName("UTF-8"));
+			springagramItemWithEncodedIdTemplate = StreamUtils.copyToString(springagramItemWithEncodedId.getInputStream(),
+					Charset.forName("UTF-8"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
-		String springagramRootHalDocument = String.format(springagramRootTemplate, rootResource(), rootResource());
+		String springagramRootHalDocument = String.format(springagramRootTemplate, rootResource(), rootResource(),rootResource());
 		String springagramItemsHalDocument = String.format(springagramItemsTemplate, rootResource(), rootResource(), rootResource());
 		String springagramItemHalDocument = String.format(springagramItemTemplate, rootResource(), rootResource());
 		String springagramItemWithoutImageHalDocument = String.format(springagramItemWithoutImageTemplate, rootResource());
+		String springagramItemWithEncodedIdHalDocument = String.format(springagramItemWithEncodedIdTemplate, rootResource(),rootResource());
 
 		onRequest(). //
 				havingPathEqualTo("/springagram"). //
@@ -157,6 +162,11 @@ public class Server implements Closeable {
 				withBody(springagramItemsHalDocument). //
 				withContentType(MediaTypes.HAL_JSON.toString());
 
+		onRequest(). //
+				havingPathEqualTo("/springagram/item/123%23456"). //
+				respond(). //
+				withBody(springagramItemWithEncodedIdHalDocument). //
+				withContentType(MediaTypes.HAL_JSON.toString());
 	}
 
 	public String rootResource() {

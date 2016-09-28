@@ -16,6 +16,7 @@
 package org.springframework.hateoas;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 /**
  * Custom URI template to support qualified URI template variables.
@@ -228,7 +230,7 @@ public class UriTemplate implements Iterable<TemplateVariable>, Serializable {
 			appendToBuilder(builder, variable, parameters.get(variable.getName()));
 		}
 
-		return builder.build().toUri();
+		return builder.build(true).toUri();
 	}
 
 	/* 
@@ -284,19 +286,22 @@ public class UriTemplate implements Iterable<TemplateVariable>, Serializable {
 
 			return;
 		}
-
-		switch (variable.getType()) {
-			case REQUEST_PARAM:
-			case REQUEST_PARAM_CONTINUED:
-				builder.queryParam(variable.getName(), value);
-				break;
-			case PATH_VARIABLE:
-			case SEGMENT:
-				builder.pathSegment(value.toString());
-				break;
-			case FRAGMENT:
-				builder.fragment(value.toString());
-				break;
+		try {
+			switch (variable.getType()) {
+				case REQUEST_PARAM:
+				case REQUEST_PARAM_CONTINUED:
+					builder.queryParam(variable.getName(), UriUtils.encodeQueryParam(value.toString(), "UTF-8"));
+					break;
+				case PATH_VARIABLE:
+				case SEGMENT:
+					builder.pathSegment(UriUtils.encodePathSegment(value.toString(), "UTF-8"));
+					break;
+				case FRAGMENT:
+					builder.fragment(UriUtils.encodePath(value.toString(), "UTF-8"));
+					break;
+			}
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 }

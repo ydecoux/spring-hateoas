@@ -373,6 +373,22 @@ public class TraversonTest {
 				equalTo(server.rootResource() + "/springagram/items"));
 	}
 
+	/**
+	 * @see #498
+	 */
+	@Test
+	public void doesNotDoubleEncodeMandatoryParamURI() {
+
+		this.traverson = new Traverson(URI.create(server.rootResource() + "/springagram"), MediaTypes.HAL_JSON);
+
+		Resource<?> itemResource = traverson.//
+				follow(rel("item").withParameters(Collections.singletonMap("itemId", "123#456"))).//
+				toObject(Resource.class);
+
+		assertThat(itemResource.hasLink("self"), is(true));
+		assertThat(itemResource.getLink("self").expand().getHref(),
+				equalTo(server.rootResource() + "/springagram/item/123#456"));
+	}
 	private void setUpActors() {
 
 		Resource<Actor> actor = new Resource<Actor>(new Actor("Keanu Reaves"));
